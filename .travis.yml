@@ -13,7 +13,6 @@ cache:
     - $HOME/.sbt
 before_install:
   - sudo /etc/init.d/postgresql stop
-  - sudo apt-get -y remove --purge postgresql-9.3
   - sudo apt-get -y remove --purge postgresql-9.4
   - sudo apt-get -y remove --purge postgresql-9.5
   - sudo apt-get -y remove --purge postgresql-9.6
