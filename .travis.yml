@@ -21,7 +21,8 @@ before_install:
   - sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main 12" >> /etc/apt/sources.list.d/postgresql.list'
   - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
   - sudo apt-get update
-  - sudo apt-get -y install postgresql-12 postgis
+  #- sudo apt-get -y install postgresql-12 postgresql-12-postgis-2.5
+  - sudo apt-get -y install postgresql-12
   - sudo sh -c 'echo "local all postgres trust" > /etc/postgresql/12/main/pg_hba.conf'
   - sudo sh -c 'echo -n "host all all 127.0.0.1/32 trust" >> /etc/postgresql/12/main/pg_hba.conf'
   - sudo service postgresql restart 12
@@ -29,5 +30,5 @@ before_script:
   - psql -c 'create database test;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS hstore;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS ltree;' -U postgres
-  - psql test -c 'CREATE EXTENSION IF NOT EXISTS postgis;' -U postgres
+  #- psql test -c 'CREATE EXTENSION IF NOT EXISTS postgis;' -U postgres
   - psql test -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;' -U postgres
