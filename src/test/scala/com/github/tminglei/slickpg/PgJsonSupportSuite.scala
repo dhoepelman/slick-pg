@@ -123,7 +123,43 @@ class PgJsonSupportSuite extends FunSuite {
           // #-
           JsonTests.filter(_.id === 33L).map(_.json.set(List("c"), JsonString(""" [1] """))).result.head.map(
             r => assert(""" {"a": 101, "b": "aaa", "c": [1]} """.replace(" ", "") === r.value.replace(" ", ""))
-          )
+          ),
+          // @?
+          JsonTests.filter(_.id === testRec1.id).map(_.json.@?("$.a")).result.head.map(
+            r => assert(true === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.@?("$.d")).result.head.map(
+            r => assert(false === r.value)
+          ),
+          // @@
+          JsonTests.filter(_.id === testRec1.id).map(_.json.@?("$.c[*] > 2")).result.head.map(
+            r => assert(true === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.@?("$.c[*] > 5")).result.head.map(
+            r => assert(false === r.value)
+          ),
+          // jsonb_path_* tests
+          JsonTests.filter(_.id === testRec1.id).map(_.json.pathExists("$.b")).result.head.map(
+            r => assert(true === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.pathMatch("$.d")).result.head.map(
+            r => assert(false === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.pathQuery("$.b")).result.head.map(
+            r => assert("\"aaa\"" === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.pathQuery("$.c[*] ? (@ >= 5)")).to[List].result.head.map(
+            r => assert(List("5","9") === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.pathQuery("$.c[*] ? (@ >= $min)", vars = JsonString("""{"min": 5}"""))).to[List].result.head.map(
+            r => assert(List("5","9") === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.pathQueryArray("$.c[*] ? (@ >= 5)")).result.head.map(
+            r => assert("""[5,9]""" === r.value)
+          ),
+          JsonTests.filter(_.id === testRec1.id).map(_.json.pathQueryFirst("$.c[*] ? (@ >= 5)")).result.head.map(
+            r => assert("5" === r.value)
+          ),
         )
       ).andFinally(
         JsonTests.schema drop

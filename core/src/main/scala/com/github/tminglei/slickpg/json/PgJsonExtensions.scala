@@ -1,4 +1,4 @@
-package com.github.tminglei.slickpg
+  package com.github.tminglei.slickpg
 package json
 
 import slick.ast.TypedType
@@ -22,6 +22,8 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     val Concatenate = new SqlOperator("||")
     val Delete = new SqlOperator("-")
     val DeleteDeep = new SqlOperator("#-")
+    val JsonPathExistsOperator = new SqlOperator("@?")
+    val JsonPathMatchOperator = new SqlOperator("@@")
 
     val toJson = new SqlFunction("to_json")
     val toJsonb = new SqlFunction("to_jsonb")
@@ -41,6 +43,11 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
 //    val jsonPopulateRecordset = new SqlFunction(pgjson + "_populate_recordset")  //not support, since "row" type not supported by slick/slick-pg yet
 //    val jsonToRecord = new SqlFunction(pgjson + "_to_record")  //not support, since "row" type not supported by slick/slick-pg yet
 //    val jsonToRecordSet = new SqlFunction(pgjson + "_to_recordset")  //not support, since "row" type not supported by slick/slick-pg yet
+    val jsonbPathExists = new SqlFunction("jsonb_path_exists")
+    val jsonbPathMatch = new SqlFunction("jsonb_path_match")
+    val jsonbPathQuery = new SqlFunction("jsonb_path_query")
+    val jsonbPathQueryArray = new SqlFunction("jsonb_path_query_array")
+    val jsonbPathQueryFirst = new SqlFunction("jsonb_path_query_first")
   }
 
   class JsonColumnExtensionMethods[JSONType, P1](val c: Rep[P1])(
@@ -92,6 +99,12 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
     def #-[P2, R](c2: Rep[P2])(implicit om: o#arg[List[String], P2]#to[JSONType, R]) = {
         om.column(jsonLib.DeleteDeep, n, c2.toNode)
       }
+    def @?[P2, R](c2: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+      om.column(jsonLib.JsonPathExistsOperator, n, c2.toNode)
+    }
+    def @@[P2, R](c2: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) = {
+      om.column(jsonLib.JsonPathMatchOperator, n, c2.toNode)
+    }
 
     def jsonType[R](implicit om: o#to[String, R]) = om.column(jsonLib.typeof, n)
     def objectKeys[R](implicit om: o#to[String, R]) = om.column(jsonLib.objectKeys, n)
@@ -103,5 +116,40 @@ trait PgJsonExtensions extends JdbcTypesComponent { driver: PostgresProfile =>
         case Some(b) => om.column(jsonLib.jsonbSet, n, path.toNode, value.toNode, LiteralColumn(b).toNode)
         case None    => om.column(jsonLib.jsonbSet, n, path.toNode, value.toNode)
       }
+
+    def pathExists[P2, R](path: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) =
+      om.column(jsonLib.jsonbPathExists, n, path.toNode)
+
+    def pathExists[P2, P3, R](path: Rep[P2], vars: Rep[P3], silent: Boolean = false)(
+      implicit om: o#arg[String, P2]#arg[JSONType, P3]#to[Boolean, R]) =
+      om.column(jsonLib.jsonbPathExists, n, path.toNode, vars.toNode, LiteralColumn(silent).toNode)
+
+    def pathMatch[P2, R](path: Rep[P2])(implicit om: o#arg[String, P2]#to[Boolean, R]) =
+      om.column(jsonLib.jsonbPathMatch, n, path.toNode)
+
+    def pathMatch[P2, P3, R](path: Rep[P2], vars: Rep[P3], silent: Boolean = false)(
+      implicit om: o#arg[String, P2]#arg[JSONType, P3]#to[Boolean, R]) =
+      om.column(jsonLib.jsonbPathMatch, n, path.toNode, vars.toNode, LiteralColumn(silent).toNode)
+
+    def pathQuery[P2, R](path: Rep[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) =
+      om.column(jsonLib.jsonbPathQuery, n, path.toNode)
+
+    def pathQuery[P2, P3, R](path: Rep[P2], vars: Rep[P3], silent: Boolean = false)(
+      implicit om: o#arg[String, P2]#arg[JSONType, P3]#to[JSONType, R]) =
+      om.column(jsonLib.jsonbPathQuery, n, path.toNode, vars.toNode, LiteralColumn(silent).toNode)
+
+    def pathQueryArray[P2, R](path: Rep[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) =
+      om.column(jsonLib.jsonbPathQueryArray, n, path.toNode)
+
+    def pathQueryArray[P2, P3, R](path: Rep[P2], vars: Rep[P3], silent: Boolean = false)(
+      implicit om: o#arg[String, P2]#arg[JSONType, P3]#to[JSONType, R]) =
+      om.column(jsonLib.jsonbPathQueryArray, n, path.toNode, vars.toNode, LiteralColumn(silent).toNode)
+
+    def pathQueryFirst[P2, R](path: Rep[P2])(implicit om: o#arg[String, P2]#to[JSONType, R]) =
+      om.column(jsonLib.jsonbPathQueryFirst, n, path.toNode)
+
+    def pathQueryFirst[P2, P3, R](path: Rep[P2], vars: Rep[P3], silent: Boolean = false)(
+      implicit om: o#arg[String, P2]#arg[JSONType, P3]#to[JSONType, R]) =
+      om.column(jsonLib.jsonbPathQueryFirst, n, path.toNode, vars.toNode, LiteralColumn(silent).toNode)
   }
 }
