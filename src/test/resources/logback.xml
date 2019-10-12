@@ -7,6 +7,8 @@
     </appender>
 
     <logger name="slick" level="INFO"/>
+    <logger name="slick.jdbc.JdbcBackend.statement" level="trace" />
+    <logger name="slick.jdbc.JdbcBackend.parameter" level="trace" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
